@@ -1,0 +1,81 @@
+package com.koushik.expansetracker.service;
+
+import com.koushik.expansetracker.dto.UserPermissionSummary;
+import com.koushik.expansetracker.dto.UserScreenResponse;
+import com.koushik.expansetracker.entity.*;
+import com.koushik.expansetracker.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class PermissionSummaryService {
+
+    @Autowired private UserRepository userRepository;
+    @Autowired private UserRoleRepository userRoleRepository;
+    @Autowired private RoleScreenPermissionRepository roleScreenPermissionRepository;
+    @Autowired private UserScreenPermissionRepository userScreenPermissionRepository;
+    @Autowired private RoleRepository roleRepository;
+    @Autowired private ScreenRepository screenRepository;
+
+    public UserPermissionSummary getUserPermissions(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 1️⃣ Get all roles of the user
+        List<Long> roleIds = userRoleRepository.findByUserId(userId)
+                .stream().map(UserRole::getRoleId)
+                .collect(Collectors.toList());
+
+        // 2️⃣ Collect role-based screen permissions
+        Map<Long, UserScreenResponse> finalPermissions = new HashMap<>();
+
+        for (Long roleId : roleIds) {
+            List<RoleScreenPermission> perms = roleScreenPermissionRepository.findByRoleId(roleId);
+
+            for (RoleScreenPermission p : perms) {
+                Screen screen = screenRepository.findById(p.getScreenId()).orElse(null);
+                if (screen == null) continue;
+
+                finalPermissions.put(screen.getScreenId(),
+                        UserScreenResponse.builder()
+                                .screenId(screen.getScreenId())
+                                .screenName(screen.getScreenName())
+                                .screenRoute(screen.getScreenRoute())
+                                .canView(p.isCanView())
+                                .canEdit(p.isCanEdit())
+                                .canDelete(p.isCanDelete())
+                                .build()
+                );
+            }
+        }
+
+        // 3️⃣ Apply user-specific overrides
+        List<UserScreenPermission> overrides = userScreenPermissionRepository.findByUserId(userId);
+
+        for (UserScreenPermission o : overrides) {
+            Screen screen = screenRepository.findById(o.getScreenId()).orElse(null);
+            if (screen == null) continue;
+
+            finalPermissions.put(screen.getScreenId(),
+                    UserScreenResponse.builder()
+                            .screenId(screen.getScreenId())
+                            .screenName(screen.getScreenName())
+                            .screenRoute(screen.getScreenRoute())
+                            .canView(o.isCanView())
+                            .canEdit(o.isCanEdit())
+                            .canDelete(o.isCanDelete())
+                            .build()
+            );
+        }
+
+        return UserPermissionSummary.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .screens(new ArrayList<>(finalPermissions.values()))
+                .build();
+    }
+}
