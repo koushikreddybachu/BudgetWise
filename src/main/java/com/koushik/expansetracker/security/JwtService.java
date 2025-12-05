@@ -11,7 +11,6 @@ import java.util.Date;
 public class JwtService {
 
     private final String SECRET = "SuperSecretKeyForJwtShouldBeLongEnough12345";
-    private final long EXPIRATION = 1000 * 60 * 60 * 5; // 5 hours
 
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes());
@@ -21,7 +20,6 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
