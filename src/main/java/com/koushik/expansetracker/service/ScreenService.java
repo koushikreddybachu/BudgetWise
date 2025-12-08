@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScreenService {
 
-    @Autowired
-    private ScreenRepository screenRepository;
+    private final ScreenRepository screenRepository;
+
+    public ScreenService(ScreenRepository screenRepository) {
+        this.screenRepository = screenRepository;
+    }
 
     public Screen createScreen(CreateScreenRequest request) {
 

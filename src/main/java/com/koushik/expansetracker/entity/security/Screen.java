@@ -23,8 +23,6 @@ public class Screen {
 
     private boolean isMenu;
 
-    private Long parentId; // Self-reference (no mapping)
-
-    // Getters & setters
+    private Long parentId;
 }
 

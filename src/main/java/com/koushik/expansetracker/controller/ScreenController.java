@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/screens")
 public class ScreenController {
 
-    @Autowired
-    private ScreenService screenService;
+    private final ScreenService screenService;
+
+    public ScreenController(ScreenService screenService) {
+        this.screenService = screenService;
+    }
 
     @PostMapping
     public ResponseEntity<Screen> createScreen(@RequestBody CreateScreenRequest request) {

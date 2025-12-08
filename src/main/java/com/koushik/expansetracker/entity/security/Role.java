@@ -22,9 +22,5 @@ public class Role {
     private String roleName;
 
     private String roleDescription;
-
-    // No relationship mapping (better for RBAC stability)
-
-    // Getters & setters
 }
 

@@ -29,15 +29,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // Disable CSRF because we use JWT (not forms)
                 .csrf(csrf -> csrf.disable())
 
-                // We use JWT -> no session should ever be created
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Disable features we don't use
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.disable())
@@ -47,14 +44,10 @@ public class SecurityConfig {
 
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/signup").permitAll()// Public login endpoint
-                        .anyRequest().authenticated()            // Everything else requires JWT
+                        .requestMatchers("/auth/login", "/auth/signup").permitAll()
+                        .anyRequest().authenticated()
                 )
-//                .authorizeHttpRequests(auth -> auth
-//                        .anyRequest().permitAll()  // ALLOW ALL APIs
-//                )
 
-                // Add our JWT filter before username/password filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoleScreenPermissionService {
 
-    @Autowired
-    private RoleScreenPermissionRepository roleScreenPermissionRepository;
+    private final RoleScreenPermissionRepository roleScreenPermissionRepository;
+
+    public RoleScreenPermissionService(RoleScreenPermissionRepository roleScreenPermissionRepository) {
+        this.roleScreenPermissionRepository = roleScreenPermissionRepository;
+    }
 
     public RoleScreenPermission assignPermission(RoleScreenPermissionRequest request) {
 

@@ -9,8 +9,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserScreenPermissionService {
 
-    @Autowired
-    private UserScreenPermissionRepository userScreenPermissionRepository;
+    private final UserScreenPermissionRepository userScreenPermissionRepository;
+
+    public UserScreenPermissionService(UserScreenPermissionRepository userScreenPermissionRepository) {
+        this.userScreenPermissionRepository = userScreenPermissionRepository;
+    }
 
     public UserScreenPermission assignUserPermission(UserScreenPermissionRequest request) {
 

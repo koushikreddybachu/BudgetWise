@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/permissions")
 public class PermissionSummaryController {
 
-    @Autowired
-    private PermissionSummaryService permissionSummaryService;
+    private final PermissionSummaryService permissionSummaryService;
+
+    public PermissionSummaryController(PermissionSummaryService permissionSummaryService) {
+        this.permissionSummaryService = permissionSummaryService;
+    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<UserPermissionSummary> getPermissions(@PathVariable Long userId) {

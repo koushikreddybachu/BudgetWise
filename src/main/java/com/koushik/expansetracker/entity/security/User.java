@@ -33,7 +33,5 @@ public class User {
     private boolean isActive = true;
 
     private Timestamp createdAt = new Timestamp(System.currentTimeMillis());
-
-    // Getters & setters
 }
 

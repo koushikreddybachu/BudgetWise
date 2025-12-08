@@ -15,10 +15,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class SignupService {
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private RoleRepository roleRepository;
-    @Autowired private UserRoleRepository userRoleRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public SignupService(UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public SignupResponse signup(SignupRequest request) {
 

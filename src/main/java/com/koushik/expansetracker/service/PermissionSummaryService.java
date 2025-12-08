@@ -13,12 +13,21 @@ import java.util.stream.Collectors;
 @Service
 public class PermissionSummaryService {
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private UserRoleRepository userRoleRepository;
-    @Autowired private RoleScreenPermissionRepository roleScreenPermissionRepository;
-    @Autowired private UserScreenPermissionRepository userScreenPermissionRepository;
-    @Autowired private RoleRepository roleRepository;
-    @Autowired private ScreenRepository screenRepository;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RoleScreenPermissionRepository roleScreenPermissionRepository;
+    private final UserScreenPermissionRepository userScreenPermissionRepository;
+    private final RoleRepository roleRepository;
+    private final ScreenRepository screenRepository;
+
+    public PermissionSummaryService(UserRepository userRepository, UserRoleRepository userRoleRepository, RoleScreenPermissionRepository roleScreenPermissionRepository, UserScreenPermissionRepository userScreenPermissionRepository, RoleRepository roleRepository, ScreenRepository screenRepository) {
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.roleScreenPermissionRepository = roleScreenPermissionRepository;
+        this.userScreenPermissionRepository = userScreenPermissionRepository;
+        this.roleRepository = roleRepository;
+        this.screenRepository = screenRepository;
+    }
 
     public UserPermissionSummary getUserPermissions(Long userId) {
 

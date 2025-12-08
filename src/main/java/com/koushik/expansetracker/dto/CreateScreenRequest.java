@@ -8,5 +8,5 @@ import lombok.Setter;
 public class CreateScreenRequest {
     private String screenName;
     private String screenRoute;
-    private boolean isMenu;  // visible in sidebar or not
+    private boolean isMenu;
 }

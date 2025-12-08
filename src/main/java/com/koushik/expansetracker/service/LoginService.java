@@ -1,6 +1,7 @@
 package com.koushik.expansetracker.service;
 
 import com.koushik.expansetracker.dto.UserPermissionSummary;
+import com.koushik.expansetracker.security.CustomUserDetailsService;
 import com.koushik.expansetracker.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.*;
@@ -10,10 +11,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class LoginService {
 
-    @Autowired private AuthenticationManager authManager;
-    @Autowired private JwtService jwtService;
-    @Autowired private PermissionSummaryService permissionSummaryService;
-    @Autowired private com.koushik.expansetracker.security.CustomUserDetailsService userDetailsService;
+    private final AuthenticationManager authManager;
+    private final JwtService jwtService;
+    private final PermissionSummaryService permissionSummaryService;
+    private final com.koushik.expansetracker.security.CustomUserDetailsService userDetailsService;
+
+    public LoginService(AuthenticationManager authManager, JwtService jwtService, PermissionSummaryService permissionSummaryService, CustomUserDetailsService userDetailsService) {
+        this.authManager = authManager;
+        this.jwtService = jwtService;
+        this.permissionSummaryService = permissionSummaryService;
+        this.userDetailsService = userDetailsService;
+    }
 
     public UserLoginResponse login(String email, String password) {
 

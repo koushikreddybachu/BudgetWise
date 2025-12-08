@@ -25,7 +25,5 @@ public class UserScreenPermission {
     private boolean canView;
     private boolean canEdit;
     private boolean canDelete;
-
-    // Getters & setters
 }
 

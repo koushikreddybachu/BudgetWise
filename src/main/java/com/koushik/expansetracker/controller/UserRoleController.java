@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user-roles")
 public class UserRoleController {
 
-    @Autowired
-    private UserRoleService userRoleService;
+    private final UserRoleService userRoleService;
+
+    public UserRoleController(UserRoleService userRoleService) {
+        this.userRoleService = userRoleService;
+    }
 
     @PostMapping
     public ResponseEntity<UserRole> assignRole(@RequestBody AssignRoleRequest request) {

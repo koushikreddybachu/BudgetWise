@@ -17,7 +17,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoryId;
 
-    private Long userId; // NULL for default categories
+    private Long userId;
 
     private String categoryName;
 

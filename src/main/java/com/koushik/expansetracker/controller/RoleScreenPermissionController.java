@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/role-screen-permissions")
 public class RoleScreenPermissionController {
 
-    @Autowired
-    private RoleScreenPermissionService roleScreenPermissionService;
+    private final RoleScreenPermissionService roleScreenPermissionService;
+
+    public RoleScreenPermissionController(RoleScreenPermissionService roleScreenPermissionService) {
+        this.roleScreenPermissionService = roleScreenPermissionService;
+    }
 
     @PostMapping
     public ResponseEntity<RoleScreenPermission> assignPermission(@RequestBody RoleScreenPermissionRequest request) {

@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/user-screen-permissions")
 public class UserScreenPermissionController {
 
-    @Autowired
-    private UserScreenPermissionService userScreenPermissionService;
+    private final UserScreenPermissionService userScreenPermissionService;
+
+    public UserScreenPermissionController(UserScreenPermissionService userScreenPermissionService) {
+        this.userScreenPermissionService = userScreenPermissionService;
+    }
 
     @PostMapping
     public ResponseEntity<UserScreenPermission> assignPermission(@RequestBody UserScreenPermissionRequest request) {

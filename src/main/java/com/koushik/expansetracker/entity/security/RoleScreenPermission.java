@@ -24,7 +24,5 @@ public class RoleScreenPermission {
     private boolean canView;
     private boolean canEdit;
     private boolean canDelete;
-
-    // Getters & setters
 }
 

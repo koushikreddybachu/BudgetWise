@@ -21,7 +21,5 @@ public class Permission {
     private String permissionName;
 
     private String description;
-
-    // Getters & setters
 }
 

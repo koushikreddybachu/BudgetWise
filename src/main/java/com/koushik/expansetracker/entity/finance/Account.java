@@ -19,7 +19,7 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long accountId;
 
-    private Long userId; // FK → users.userId
+    private Long userId;
 
     private String accountName;
 
