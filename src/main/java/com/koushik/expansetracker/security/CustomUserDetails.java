@@ -1,22 +1,21 @@
 package com.koushik.expansetracker.security;
 
 import com.koushik.expansetracker.entity.security.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 
 public class CustomUserDetails implements UserDetails {
 
-    private User user;
+    private final User user;
+    private final List<String> roles;
 
-    public CustomUserDetails(User user) {
+    public CustomUserDetails(User user, List<String> roles) {
         this.user = user;
-    }
-
-    @Override
-    public List<SimpleGrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("USER"));
+        this.roles = roles;
     }
 
     public User getUser() {
@@ -24,24 +23,41 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // DB roleName should be like "ROLE_ADMIN", "ROLE_USER"
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+    }
+
+    @Override
     public String getPassword() {
         return user.getPassword();
     }
 
+    // We use email as the username for authentication
     @Override
     public String getUsername() {
         return user.getEmail();
     }
 
     @Override
-    public boolean isAccountNonExpired() { return true; }
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
     @Override
-    public boolean isCredentialsNonExpired() { return true; }
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
     @Override
-    public boolean isEnabled() { return user.isActive(); }
+    public boolean isEnabled() {
+        return user.isActive();
+    }
 }

@@ -30,21 +30,25 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .logout(logout -> logout.disable())
                 .requestCache(cache -> cache.disable())
-                .securityContext(sec -> sec.disable())
 
-
+                .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers("/auth/login", "/auth/signup").permitAll()
+
+                        // Admin-only security management endpoints
+                        .requestMatchers("/roles/**", "/user-roles/**", "/screens/**")
+                        .hasRole("ADMIN") // matches ROLE_ADMIN in DB
+
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
 
@@ -62,7 +66,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
+            throws Exception {
         return config.getAuthenticationManager();
     }
 }
