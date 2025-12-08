@@ -1,7 +1,7 @@
 package com.koushik.expansetracker.controller;
 
 import com.koushik.expansetracker.dto.CreateRoleRequest;
-import com.koushik.expansetracker.entity.Role;
+import com.koushik.expansetracker.entity.security.Role;
 import com.koushik.expansetracker.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,24 +1,23 @@
-package com.koushik.expansetracker.entity;
+package com.koushik.expansetracker.entity.security;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "user_screen_permissions",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"userId", "screenId"}))
+@Table(name = "role_screen_permissions",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"roleId", "screenId"}))
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 
-public class UserScreenPermission {
+public class RoleScreenPermission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long uspId;
+    private Long roleScreenPermId;
 
-    private Long userId;
     private Long roleId;
     private Long screenId;
 

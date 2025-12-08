@@ -1,4 +1,4 @@
-package com.koushik.expansetracker.entity;
+package com.koushik.expansetracker.entity.security;
 
 import jakarta.persistence.*;
 import lombok.*;

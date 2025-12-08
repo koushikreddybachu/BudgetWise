@@ -1,6 +1,6 @@
-package com.koushik.expansetracker.repository;
+package com.koushik.expansetracker.repository.security;
 
-import com.koushik.expansetracker.entity.Role;
+import com.koushik.expansetracker.entity.security.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

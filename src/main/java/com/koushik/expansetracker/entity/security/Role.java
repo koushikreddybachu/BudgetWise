@@ -1,26 +1,29 @@
-package com.koushik.expansetracker.entity;
+package com.koushik.expansetracker.entity.security;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "permissions")
+@Table(name = "roles")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 
-public class Permission {
+
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long permissionId;
+    private Long roleId;
 
     @Column(nullable = false, unique = true)
-    private String permissionName;
+    private String roleName;
 
-    private String description;
+    private String roleDescription;
+
+    // No relationship mapping (better for RBAC stability)
 
     // Getters & setters
 }

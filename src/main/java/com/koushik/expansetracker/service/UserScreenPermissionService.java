@@ -1,8 +1,8 @@
 package com.koushik.expansetracker.service;
 
 import com.koushik.expansetracker.dto.UserScreenPermissionRequest;
-import com.koushik.expansetracker.entity.UserScreenPermission;
-import com.koushik.expansetracker.repository.UserScreenPermissionRepository;
+import com.koushik.expansetracker.entity.security.UserScreenPermission;
+import com.koushik.expansetracker.repository.security.UserScreenPermissionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

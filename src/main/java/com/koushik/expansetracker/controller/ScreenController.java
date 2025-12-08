@@ -1,7 +1,7 @@
 package com.koushik.expansetracker.controller;
 
 import com.koushik.expansetracker.dto.CreateScreenRequest;
-import com.koushik.expansetracker.entity.Screen;
+import com.koushik.expansetracker.entity.security.Screen;
 import com.koushik.expansetracker.service.ScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

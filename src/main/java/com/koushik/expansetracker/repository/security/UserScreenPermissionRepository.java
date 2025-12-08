@@ -1,6 +1,6 @@
-package com.koushik.expansetracker.repository;
+package com.koushik.expansetracker.repository.security;
 
-import com.koushik.expansetracker.entity.UserScreenPermission;
+import com.koushik.expansetracker.entity.security.UserScreenPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

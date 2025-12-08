@@ -1,7 +1,7 @@
 package com.koushik.expansetracker.controller;
 
 import com.koushik.expansetracker.dto.RoleScreenPermissionRequest;
-import com.koushik.expansetracker.entity.RoleScreenPermission;
+import com.koushik.expansetracker.entity.security.RoleScreenPermission;
 import com.koushik.expansetracker.service.RoleScreenPermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

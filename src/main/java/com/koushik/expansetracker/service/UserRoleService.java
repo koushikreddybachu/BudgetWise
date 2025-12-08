@@ -1,8 +1,8 @@
 package com.koushik.expansetracker.service;
 
 import com.koushik.expansetracker.dto.AssignRoleRequest;
-import com.koushik.expansetracker.entity.UserRole;
-import com.koushik.expansetracker.repository.UserRoleRepository;
+import com.koushik.expansetracker.entity.security.UserRole;
+import com.koushik.expansetracker.repository.security.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

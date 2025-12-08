@@ -1,8 +1,8 @@
 package com.koushik.expansetracker.service;
 
 import com.koushik.expansetracker.dto.CreateScreenRequest;
-import com.koushik.expansetracker.entity.Screen;
-import com.koushik.expansetracker.repository.ScreenRepository;
+import com.koushik.expansetracker.entity.security.Screen;
+import com.koushik.expansetracker.repository.security.ScreenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

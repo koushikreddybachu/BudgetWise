@@ -1,6 +1,6 @@
 package com.koushik.expansetracker.security;
 
-import com.koushik.expansetracker.entity.User;
+import com.koushik.expansetracker.entity.security.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -16,7 +16,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public List<SimpleGrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("USER"));  // Not important for now
+        return List.of(new SimpleGrantedAuthority("USER"));
     }
 
     public User getUser() {
@@ -30,7 +30,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail();  // login using email
+        return user.getEmail();
     }
 
     @Override

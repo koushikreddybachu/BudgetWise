@@ -1,8 +1,8 @@
 package com.koushik.expansetracker.service;
 
 import com.koushik.expansetracker.dto.CreateUserRequest;
-import com.koushik.expansetracker.entity.User;
-import com.koushik.expansetracker.repository.UserRepository;
+import com.koushik.expansetracker.entity.security.User;
+import com.koushik.expansetracker.repository.security.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

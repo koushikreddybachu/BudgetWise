@@ -44,13 +44,15 @@ public class SecurityConfig {
                 .requestCache(cache -> cache.disable())
                 .securityContext(sec -> sec.disable())
 
-                // IMPORTANT → DO NOT DISABLE ANONYMOUS !!!
-                // This ensures missing token returns 401 instead of 403.
+
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login").permitAll()   // Public login endpoint
                         .anyRequest().authenticated()            // Everything else requires JWT
                 )
+//                .authorizeHttpRequests(auth -> auth
+//                        .anyRequest().permitAll()  // ALLOW ALL APIs
+//                )
 
                 // Add our JWT filter before username/password filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -58,7 +60,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // DAO Authentication Provider — used for login API
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
