@@ -47,7 +47,7 @@ public class SecurityConfig {
 
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login").permitAll()   // Public login endpoint
+                        .requestMatchers("/auth/login", "/auth/signup").permitAll()// Public login endpoint
                         .anyRequest().authenticated()            // Everything else requires JWT
                 )
 //                .authorizeHttpRequests(auth -> auth
