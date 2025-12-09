@@ -10,4 +10,6 @@ public interface TransactionTagRepository extends JpaRepository<TransactionTag, 
     List<TransactionTag> findByTransactionId(Long transactionId);
 
     List<TransactionTag> findByTagId(Long tagId);
+
+    void deleteByTransactionId(Long transactionId);
 }

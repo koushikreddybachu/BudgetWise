@@ -1,86 +1,104 @@
 package com.koushik.expansetracker.service.finance.implementations;
-
-import com.koushik.expansetracker.entity.finance.*;
-import com.koushik.expansetracker.entity.finance.enums.TransactionType;
-import com.koushik.expansetracker.repository.finance.*;
+import com.koushik.expansetracker.entity.finance.Tag;
+import com.koushik.expansetracker.entity.finance.Transaction;
+import com.koushik.expansetracker.entity.finance.TransactionTag;
+import com.koushik.expansetracker.repository.finance.TagRepository;
+import com.koushik.expansetracker.repository.finance.TransactionRepository;
+import com.koushik.expansetracker.repository.finance.TransactionTagRepository;
+import com.koushik.expansetracker.security.OwnershipValidator;
 import com.koushik.expansetracker.service.finance.interfaces.TransactionServiceInterface;
-import lombok.RequiredArgsConstructor;
+import com.koushik.expansetracker.util.SecurityUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class TransactionService implements TransactionServiceInterface {
 
     private final TransactionRepository transactionRepository;
-    private final AccountRepository accountRepository;
-    private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final TransactionTagRepository transactionTagRepository;
+    private final OwnershipValidator ownershipValidator;
+
+    public TransactionService(TransactionRepository transactionRepository,
+                              TagRepository tagRepository,
+                              TransactionTagRepository transactionTagRepository,
+                              OwnershipValidator ownershipValidator) {
+        this.transactionRepository = transactionRepository;
+        this.tagRepository = tagRepository;
+        this.transactionTagRepository = transactionTagRepository;
+        this.ownershipValidator = ownershipValidator;
+    }
 
     @Override
+    @Transactional
     public Transaction createTransaction(Transaction transaction, List<String> tagNames) {
-        validateAccountAndCategory(transaction);
-
-        // set createdAt if null
-        if (transaction.getCreatedAt() == null) {
-            transaction.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        }
         if (transaction.getTransactionDate() == null) {
             transaction.setTransactionDate(Timestamp.from(Instant.now()));
         }
-
-        // update account balance
-        applyBalanceEffect(transaction, null);
-
         Transaction saved = transactionRepository.save(transaction);
 
-        // handle tags
         if (tagNames != null && !tagNames.isEmpty()) {
-            saveTagsForTransaction(saved.getTransactionId(), tagNames);
+            List<Tag> tags = new ArrayList<>();
+            for (String name : tagNames) {
+                Tag tag = tagRepository.findByTagName(name)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().tagName(name).build()));
+                tags.add(tag);
+            }
+
+            for (Tag tag : tags) {
+                TransactionTag txTag = TransactionTag.builder()
+                        .transactionId(saved.getTransactionId())
+                        .tagId(tag.getTagId())
+                        .build();
+                transactionTagRepository.save(txTag);
+            }
         }
 
         return saved;
     }
 
     @Override
-    public Transaction updateTransaction(Long transactionId, Transaction updatedTransaction, List<String> tagNames) {
-        Transaction existing = getTransactionById(transactionId);
+    @Transactional
+    public Transaction updateTransaction(Long transactionId, Transaction updated, List<String> tagNames) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateTransaction(transactionId, currentUserId);
 
-        // revert old balance effect
-        revertBalanceEffect(existing);
+        Transaction existing = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
-        // update fields
-        existing.setAmount(updatedTransaction.getAmount());
-        existing.setDescription(updatedTransaction.getDescription());
-        existing.setTransactionDate(
-                updatedTransaction.getTransactionDate() != null
-                        ? updatedTransaction.getTransactionDate()
-                        : existing.getTransactionDate()
-        );
-        existing.setType(updatedTransaction.getType());
-        existing.setAccountId(updatedTransaction.getAccountId());
-        existing.setCategoryId(updatedTransaction.getCategoryId());
-        existing.setUserId(updatedTransaction.getUserId());
-
-        validateAccountAndCategory(existing);
-
-        // apply new balance effect
-        applyBalanceEffect(existing, null);
+        existing.setAccountId(updated.getAccountId());
+        existing.setCategoryId(updated.getCategoryId());
+        existing.setAmount(updated.getAmount());
+        existing.setType(updated.getType());
+        existing.setDescription(updated.getDescription());
+        existing.setTransactionDate(updated.getTransactionDate());
 
         Transaction saved = transactionRepository.save(existing);
 
-        // update tags (remove old + add new)
-        transactionTagRepository.findByTransactionId(saved.getTransactionId())
-                .forEach(tt -> transactionTagRepository.deleteById(tt.getId()));
+        // Clear old tags
+        transactionTagRepository.deleteByTransactionId(saved.getTransactionId());
 
+        // Re-add tags
         if (tagNames != null && !tagNames.isEmpty()) {
-            saveTagsForTransaction(saved.getTransactionId(), tagNames);
+            List<Tag> tags = new ArrayList<>();
+            for (String name : tagNames) {
+                Tag tag = tagRepository.findByTagName(name)
+                        .orElseGet(() -> tagRepository.save(Tag.builder().tagName(name).build()));
+                tags.add(tag);
+            }
+
+            for (Tag tag : tags) {
+                TransactionTag txTag = TransactionTag.builder()
+                        .transactionId(saved.getTransactionId())
+                        .tagId(tag.getTagId())
+                        .build();
+                transactionTagRepository.save(txTag);
+            }
         }
 
         return saved;
@@ -88,22 +106,19 @@ public class TransactionService implements TransactionServiceInterface {
 
     @Override
     public void deleteTransaction(Long transactionId) {
-        Transaction existing = getTransactionById(transactionId);
-
-        // revert account balance
-        revertBalanceEffect(existing);
-
-        // delete tags mapping
-        transactionTagRepository.findByTransactionId(existing.getTransactionId())
-                .forEach(tt -> transactionTagRepository.deleteById(tt.getId()));
-
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateTransaction(transactionId, currentUserId);
+        transactionTagRepository.deleteByTransactionId(transactionId);
         transactionRepository.deleteById(transactionId);
     }
 
     @Override
     public Transaction getTransactionById(Long transactionId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateTransaction(transactionId, currentUserId);
+
         return transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + transactionId));
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
     }
 
     @Override
@@ -114,91 +129,5 @@ public class TransactionService implements TransactionServiceInterface {
     @Override
     public List<Transaction> getTransactionsForUserInRange(Long userId, Timestamp start, Timestamp end) {
         return transactionRepository.findByUserIdAndTransactionDateBetween(userId, start, end);
-    }
-
-    // ---------- Helper Methods ----------
-
-    private void validateAccountAndCategory(Transaction tx) {
-        Account account = accountRepository.findById(tx.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found: " + tx.getAccountId()));
-
-        if (!account.getUserId().equals(tx.getUserId())) {
-            throw new RuntimeException("Account does not belong to user");
-        }
-
-        Category category = categoryRepository.findById(tx.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found: " + tx.getCategoryId()));
-
-        if (category.getUserId() != null && !category.getUserId().equals(tx.getUserId())) {
-            throw new RuntimeException("Category does not belong to user");
-        }
-    }
-
-    private void applyBalanceEffect(Transaction tx, Account preLoadedAccount) {
-        Account account = preLoadedAccount != null
-                ? preLoadedAccount
-                : accountRepository.findById(tx.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found while applying balance"));
-
-        if (account.getBalance() == null) {
-            account.setBalance(BigDecimal.ZERO);
-        }
-
-        BigDecimal amount = tx.getAmount() != null ? tx.getAmount() : BigDecimal.ZERO;
-        BigDecimal delta = BigDecimal.ZERO;
-
-        if (tx.getType() == TransactionType.EXPENSE) {
-            delta = amount.negate();
-        } else if (tx.getType() == TransactionType.INCOME) {
-            delta = amount;
-        } else if (tx.getType() == TransactionType.TRANSFER) {
-            // For now we do nothing (need source & target accounts to support fully)
-            delta = BigDecimal.ZERO;
-        }
-
-        account.setBalance(account.getBalance().add(delta));
-        accountRepository.save(account);
-    }
-
-    private void revertBalanceEffect(Transaction tx) {
-        Account account = accountRepository.findById(tx.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found while reverting balance"));
-
-        if (account.getBalance() == null) {
-            account.setBalance(BigDecimal.ZERO);
-        }
-
-        BigDecimal amount = tx.getAmount() != null ? tx.getAmount() : BigDecimal.ZERO;
-        BigDecimal delta = BigDecimal.ZERO;
-
-        if (tx.getType() == TransactionType.EXPENSE) {
-            delta = amount; // reverse of -amount
-        } else if (tx.getType() == TransactionType.INCOME) {
-            delta = amount.negate();
-        } else if (tx.getType() == TransactionType.TRANSFER) {
-            delta = BigDecimal.ZERO;
-        }
-
-        account.setBalance(account.getBalance().add(delta));
-        accountRepository.save(account);
-    }
-
-    private void saveTagsForTransaction(Long transactionId, List<String> tagNames) {
-        for (String tagName : tagNames) {
-            if (tagName == null || tagName.isBlank()) continue;
-
-            Tag tag = tagRepository.findByTagName(tagName.trim())
-                    .orElseGet(() -> {
-                        Tag t = Tag.builder().tagName(tagName.trim()).build();
-                        return tagRepository.save(t);
-                    });
-
-            TransactionTag tt = TransactionTag.builder()
-                    .transactionId(transactionId)
-                    .tagId(tag.getTagId())
-                    .build();
-
-            transactionTagRepository.save(tt);
-        }
     }
 }

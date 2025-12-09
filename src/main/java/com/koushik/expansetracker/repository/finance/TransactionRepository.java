@@ -1,6 +1,7 @@
 package com.koushik.expansetracker.repository.finance;
 
 import com.koushik.expansetracker.entity.finance.Transaction;
+import com.koushik.expansetracker.entity.finance.enums.TransactionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.sql.Timestamp;
@@ -15,4 +16,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             Timestamp startDate,
             Timestamp endDate
     );
+
+    List<Transaction> findByUserIdAndCategoryIdAndTransactionDateBetweenAndType(Long userId, Long categoryId, Timestamp startTs, Timestamp endTs, TransactionType transactionType);
 }

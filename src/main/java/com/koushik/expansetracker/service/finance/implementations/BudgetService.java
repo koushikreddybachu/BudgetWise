@@ -1,26 +1,33 @@
 package com.koushik.expansetracker.service.finance.implementations;
-
 import com.koushik.expansetracker.entity.finance.Budget;
 import com.koushik.expansetracker.entity.finance.Transaction;
 import com.koushik.expansetracker.entity.finance.enums.TransactionType;
 import com.koushik.expansetracker.repository.finance.BudgetRepository;
 import com.koushik.expansetracker.repository.finance.TransactionRepository;
+import com.koushik.expansetracker.security.OwnershipValidator;
 import com.koushik.expansetracker.service.finance.interfaces.BudgetServiceInterface;
-import lombok.RequiredArgsConstructor;
+import com.koushik.expansetracker.util.SecurityUtil;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class BudgetService implements BudgetServiceInterface {
 
     private final BudgetRepository budgetRepository;
     private final TransactionRepository transactionRepository;
+    private final OwnershipValidator ownershipValidator;
+
+    public BudgetService(BudgetRepository budgetRepository,
+                         TransactionRepository transactionRepository,
+                         OwnershipValidator ownershipValidator) {
+        this.budgetRepository = budgetRepository;
+        this.transactionRepository = transactionRepository;
+        this.ownershipValidator = ownershipValidator;
+    }
 
     @Override
     public Budget createBudget(Budget budget) {
@@ -34,49 +41,57 @@ public class BudgetService implements BudgetServiceInterface {
 
     @Override
     public Budget getBudgetById(Long budgetId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateBudget(budgetId, currentUserId);
+
         return budgetRepository.findById(budgetId)
-                .orElseThrow(() -> new RuntimeException("Budget not found with id: " + budgetId));
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
     }
 
     @Override
-    public Budget updateBudget(Long budgetId, Budget updatedBudget) {
-        Budget existing = getBudgetById(budgetId);
-        existing.setCategoryId(updatedBudget.getCategoryId());
-        existing.setAmountLimit(updatedBudget.getAmountLimit());
-        existing.setStartDate(updatedBudget.getStartDate());
-        existing.setEndDate(updatedBudget.getEndDate());
+    public Budget updateBudget(Long budgetId, Budget updated) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateBudget(budgetId, currentUserId);
+
+        Budget existing = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
+
+        existing.setCategoryId(updated.getCategoryId());
+        existing.setAmountLimit(updated.getAmountLimit());
+        existing.setStartDate(updated.getStartDate());
+        existing.setEndDate(updated.getEndDate());
+
         return budgetRepository.save(existing);
     }
 
     @Override
     public void deleteBudget(Long budgetId) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateBudget(budgetId, currentUserId);
         budgetRepository.deleteById(budgetId);
     }
 
     @Override
     public BigDecimal calculateSpentForBudget(Long budgetId) {
-        Budget budget = getBudgetById(budgetId);
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElseThrow(() -> new RuntimeException("Budget not found"));
 
-        LocalDate start = budget.getStartDate();
-        LocalDate end = budget.getEndDate();
+        Long userId = budget.getUserId();
 
-        if (start == null || end == null) {
-            return BigDecimal.ZERO;
-        }
+        Timestamp startTs = Timestamp.valueOf(LocalDateTime.of(budget.getStartDate(), LocalDateTime.MIN.toLocalTime()));
+        Timestamp endTs = Timestamp.valueOf(LocalDateTime.of(budget.getEndDate(), LocalDateTime.MAX.toLocalTime()));
 
-        Timestamp startTs = Timestamp.valueOf(LocalDateTime.of(start, java.time.LocalTime.MIN));
-        Timestamp endTs = Timestamp.valueOf(LocalDateTime.of(end, java.time.LocalTime.MAX));
-
-        List<Transaction> txs = transactionRepository.findByUserIdAndTransactionDateBetween(
-                budget.getUserId(),
-                startTs,
-                endTs
-        );
+        List<Transaction> txs = transactionRepository
+                .findByUserIdAndCategoryIdAndTransactionDateBetweenAndType(
+                        userId,
+                        budget.getCategoryId(),
+                        startTs,
+                        endTs,
+                        TransactionType.EXPENSE
+                );
 
         return txs.stream()
-                .filter(t -> t.getCategoryId().equals(budget.getCategoryId()))
-                .filter(t -> t.getType() == TransactionType.EXPENSE)
-                .map(t -> t.getAmount() != null ? t.getAmount() : BigDecimal.ZERO)
+                .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
