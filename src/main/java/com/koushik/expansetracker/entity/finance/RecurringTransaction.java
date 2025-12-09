@@ -3,6 +3,7 @@ package com.koushik.expansetracker.entity.finance;
 import com.koushik.expansetracker.entity.finance.enums.Frequency;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -29,4 +30,5 @@ public class RecurringTransaction {
     private Frequency frequency;
 
     private Timestamp nextRun;
+    private boolean isActive = true;
 }

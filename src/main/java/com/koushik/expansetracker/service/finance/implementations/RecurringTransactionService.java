@@ -1,5 +1,6 @@
 package com.koushik.expansetracker.service.finance.implementations;
 
+import com.koushik.expansetracker.dto.UpcomingRecurringPaymentResponse;
 import com.koushik.expansetracker.entity.finance.RecurringTransaction;
 import com.koushik.expansetracker.entity.finance.Transaction;
 import com.koushik.expansetracker.entity.finance.enums.TransactionType;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -82,7 +84,11 @@ public class RecurringTransactionService implements RecurringTransactionServiceI
     public void processDueRecurringTransactions() {
         Timestamp now = Timestamp.from(Instant.now());
         List<RecurringTransaction> dueRules =
-                recurringTransactionRepository.findByNextRunBefore(now);
+                recurringTransactionRepository.findByNextRunBefore(now)
+                        .stream()
+                        .filter(RecurringTransaction::isActive)
+                        .toList();
+
 
         for (RecurringTransaction rule : dueRules) {
             // Create a real transaction based on rule
@@ -112,4 +118,49 @@ public class RecurringTransactionService implements RecurringTransactionServiceI
             recurringTransactionRepository.save(rule);
         }
     }
+    @Override
+    public List<UpcomingRecurringPaymentResponse> getUpcomingPayments() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        List<RecurringTransaction> rules = recurringTransactionRepository.findByUserId(userId);
+
+        List<UpcomingRecurringPaymentResponse> response = new ArrayList<>();
+
+        for (RecurringTransaction rule : rules) {
+            response.add(
+                    UpcomingRecurringPaymentResponse.builder()
+                            .recurringId(rule.getRecurringId())
+                            .description("Recurring: " + rule.getFrequency())
+                            .amount(rule.getAmount())
+                            .nextRun(rule.getNextRun().toLocalDateTime())
+                            .frequency(rule.getFrequency().name())
+                            .build()
+            );
+        }
+
+        return response;
+    }
+    @Override
+    public RecurringTransaction pauseRule(Long id) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateRecurringRule(id, userId);
+
+        RecurringTransaction rule = recurringTransactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rule not found"));
+
+        rule.setActive(false);
+        return recurringTransactionRepository.save(rule);
+    }
+
+    @Override
+    public RecurringTransaction resumeRule(Long id) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        ownershipValidator.validateRecurringRule(id, userId);
+
+        RecurringTransaction rule = recurringTransactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rule not found"));
+
+        rule.setActive(true);
+        return recurringTransactionRepository.save(rule);
+    }
+
 }

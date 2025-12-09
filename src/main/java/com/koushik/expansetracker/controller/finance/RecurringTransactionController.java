@@ -2,6 +2,7 @@ package com.koushik.expansetracker.controller.finance;
 
 import com.koushik.expansetracker.dto.RecurringTransactionRequest;
 import com.koushik.expansetracker.dto.RecurringTransactionResponse;
+import com.koushik.expansetracker.dto.UpcomingRecurringPaymentResponse;
 import com.koushik.expansetracker.entity.finance.RecurringTransaction;
 import com.koushik.expansetracker.mapper.FinanceMapper;
 import com.koushik.expansetracker.security.CustomUserDetails;
@@ -77,4 +78,20 @@ public class RecurringTransactionController {
         service.processDueRecurringTransactions();
         return ResponseEntity.ok("Recurring transactions processed.");
     }
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<UpcomingRecurringPaymentResponse>> getUpcomingPayments() {
+        return ResponseEntity.ok(
+                service.getUpcomingPayments()
+        );
+    }
+    @PatchMapping("/{id}/pause")
+    public ResponseEntity<?> pauseRule(@PathVariable Long id) {
+        return ResponseEntity.ok(service.pauseRule(id));
+    }
+
+    @PatchMapping("/{id}/resume")
+    public ResponseEntity<?> resumeRule(@PathVariable Long id) {
+        return ResponseEntity.ok(service.resumeRule(id));
+    }
+
 }
