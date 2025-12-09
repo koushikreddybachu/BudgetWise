@@ -15,4 +15,10 @@ public interface CategoryServiceInterface {
     Category getCategoryById(Long categoryId);
 
     void deleteCategory(Long categoryId);
+    Category getCategoryByIdAndUser(Long categoryId, Long userId);
+
+    Category updateCategory(Long categoryId, Category category, Long userId);
+
+    void deleteCategorySafe(Long categoryId, Long userId);
+
 }

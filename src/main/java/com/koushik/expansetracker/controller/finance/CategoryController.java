@@ -29,9 +29,7 @@ public class CategoryController {
             @Valid @RequestBody CategoryRequest request
     ) {
         Long userId = currentUser.getUser().getUserId();
-        Category saved = categoryService.createCategory(
-                mapper.toCategoryEntity(request, userId)
-        );
+        Category saved = categoryService.createCategory(mapper.toCategoryEntity(request, userId));
         return ResponseEntity.ok(mapper.toCategoryResponse(saved));
     }
 
@@ -40,29 +38,51 @@ public class CategoryController {
             @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
         Long userId = currentUser.getUser().getUserId();
-
         var list = categoryService.getUserCategories(userId)
                 .stream().map(mapper::toCategoryResponse)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/with-defaults")
-    public ResponseEntity<List<CategoryResponse>> getCategoriesWithDefaults(
+    public ResponseEntity<List<CategoryResponse>> getAllCategoriesWithDefaults(
             @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
         Long userId = currentUser.getUser().getUserId();
         var list = categoryService.getAllCategoriesIncludingDefault(userId)
                 .stream().map(mapper::toCategoryResponse)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> getById(
+            @PathVariable Long categoryId,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        Long userId = currentUser.getUser().getUserId();
+        Category category = categoryService.getCategoryByIdAndUser(categoryId, userId);
+        return ResponseEntity.ok(mapper.toCategoryResponse(category));
+    }
+
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> updateCategory(
+            @PathVariable Long categoryId,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @Valid @RequestBody CategoryRequest request
+    ) {
+        Long userId = currentUser.getUser().getUserId();
+        Category updated = categoryService.updateCategory(categoryId, mapper.toCategoryEntity(request, userId), userId);
+        return ResponseEntity.ok(mapper.toCategoryResponse(updated));
+    }
+
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
-        categoryService.deleteCategory(categoryId);
-        return ResponseEntity.ok("Category deleted successfully.");
+    public ResponseEntity<String> deleteCategory(
+            @PathVariable Long categoryId,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        Long userId = currentUser.getUser().getUserId();
+        categoryService.deleteCategorySafe(categoryId, userId);
+        return ResponseEntity.ok("Category deleted successfully");
     }
 }

@@ -17,5 +17,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             Timestamp endDate
     );
 
+    boolean existsByCategoryId(Long categoryId);
     List<Transaction> findByUserIdAndCategoryIdAndTransactionDateBetweenAndType(Long userId, Long categoryId, Timestamp startTs, Timestamp endTs, TransactionType transactionType);
 }
