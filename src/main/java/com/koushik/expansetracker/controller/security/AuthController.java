@@ -1,6 +1,7 @@
 package com.koushik.expansetracker.controller.security;
 
 import com.koushik.expansetracker.dto.*;
+import com.koushik.expansetracker.service.security.ForgotPasswordService;
 import com.koushik.expansetracker.service.security.LoginService;
 import com.koushik.expansetracker.service.security.SignupService;
 import org.springframework.http.*;
@@ -12,10 +13,11 @@ public class AuthController {
 
     private final LoginService loginService;
     private final SignupService signupService;
-
-    public AuthController(LoginService loginService, SignupService signupService) {
+    private final ForgotPasswordService forgotPasswordService;
+    public AuthController(LoginService loginService, SignupService signupService, ForgotPasswordService forgotPasswordService) {
         this.loginService = loginService;
         this.signupService = signupService;
+        this.forgotPasswordService = forgotPasswordService;
     }
 
     @PostMapping("/login")
@@ -27,4 +29,18 @@ public class AuthController {
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         return ResponseEntity.ok(signupService.signup(request));
     }
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        String token = forgotPasswordService.generateResetToken(request);
+        return ResponseEntity.ok("Reset link token: " + token);
+        // Later: Send email with this token
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(forgotPasswordService.resetPassword(request));
+    }
+
 }
