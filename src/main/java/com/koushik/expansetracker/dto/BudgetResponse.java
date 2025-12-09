@@ -17,7 +17,5 @@ public class BudgetResponse {
     private BigDecimal amountLimit;
     private LocalDate startDate;
     private LocalDate endDate;
-
-    // Computed value from transactions
     private BigDecimal spentAmount;
 }

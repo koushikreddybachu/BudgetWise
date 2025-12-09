@@ -2,6 +2,7 @@ package com.koushik.expansetracker.dto;
 
 import com.koushik.expansetracker.entity.finance.enums.TransactionType;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -25,13 +26,14 @@ public class TransactionRequest {
     private TransactionType type;
 
     @NotNull(message = "Amount is required")
+    @Positive(message = "Amount must be greater than zero")
     private BigDecimal amount;
 
     private String description;
 
-    // Optional: if not passed, backend can set now()
+    // Optional: if null, backend will set current time
     private Timestamp transactionDate;
 
-    // Tag names (like "food", "online", "amazon")
+    // Tag names (like "food", "online", etc.)
     private List<String> tags;
 }

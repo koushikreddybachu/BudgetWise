@@ -2,6 +2,7 @@ package com.koushik.expansetracker.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ public class BillReminderRequest {
     private String billName;
 
     @NotNull(message = "Amount due is required")
+    @Positive(message = "Amount due must be greater than zero")
     private BigDecimal amountDue;
 
     @NotNull(message = "Due date is required")

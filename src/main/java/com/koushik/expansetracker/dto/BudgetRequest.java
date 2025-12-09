@@ -1,6 +1,7 @@
 package com.koushik.expansetracker.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ public class BudgetRequest {
     private Long categoryId;
 
     @NotNull(message = "Budget limit is required")
+    @Positive(message = "Budget limit must be greater than zero")
     private BigDecimal amountLimit;
 
     @NotNull(message = "Start date is required")

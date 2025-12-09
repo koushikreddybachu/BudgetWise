@@ -2,6 +2,7 @@ package com.koushik.expansetracker.dto;
 
 import com.koushik.expansetracker.entity.finance.enums.Frequency;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,10 +22,12 @@ public class RecurringTransactionRequest {
     private Long categoryId;
 
     @NotNull(message = "Amount is required")
+    @Positive(message = "Amount must be greater than zero")
     private BigDecimal amount;
 
     @NotNull(message = "Frequency is required")
     private Frequency frequency;
 
-    private Timestamp nextRun; // optional: if null, backend can set
+    // Optional: if null, backend decides first run date
+    private Timestamp nextRun;
 }

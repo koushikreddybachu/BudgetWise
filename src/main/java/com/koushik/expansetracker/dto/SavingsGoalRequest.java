@@ -2,6 +2,7 @@ package com.koushik.expansetracker.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ public class SavingsGoalRequest {
     private String goalName;
 
     @NotNull(message = "Target amount is required")
+    @Positive(message = "Target amount must be greater than zero")
     private BigDecimal targetAmount;
 
     private LocalDate deadline;
