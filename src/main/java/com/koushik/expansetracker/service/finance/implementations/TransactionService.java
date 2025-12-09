@@ -43,21 +43,26 @@ public class TransactionService implements TransactionServiceInterface {
         Transaction saved = transactionRepository.save(transaction);
 
         if (tagNames != null && !tagNames.isEmpty()) {
-            List<Tag> tags = new ArrayList<>();
-            for (String name : tagNames) {
-                Tag tag = tagRepository.findByTagName(name)
-                        .orElseGet(() -> tagRepository.save(Tag.builder().tagName(name).build()));
-                tags.add(tag);
-            }
 
-            for (Tag tag : tags) {
-                TransactionTag txTag = TransactionTag.builder()
-                        .transactionId(saved.getTransactionId())
-                        .tagId(tag.getTagId())
-                        .build();
-                transactionTagRepository.save(txTag);
+            // FIX: Remove duplicates to prevent unique constraint issues
+            tagNames = tagNames.stream().distinct().toList();
+
+            for (String name : tagNames) {
+
+                Tag tag = tagRepository.findByTagName(name)
+                        .orElseGet(() -> tagRepository.save(
+                                Tag.builder().tagName(name).build()
+                        ));
+
+                transactionTagRepository.save(
+                        TransactionTag.builder()
+                                .transactionId(saved.getTransactionId())
+                                .tagId(tag.getTagId())
+                                .build()
+                );
             }
         }
+
 
         return saved;
     }
@@ -65,6 +70,7 @@ public class TransactionService implements TransactionServiceInterface {
     @Override
     @Transactional
     public Transaction updateTransaction(Long transactionId, Transaction updated, List<String> tagNames) {
+
         Long currentUserId = SecurityUtil.getCurrentUserId();
         ownershipValidator.validateTransaction(transactionId, currentUserId);
 
@@ -78,26 +84,30 @@ public class TransactionService implements TransactionServiceInterface {
         existing.setDescription(updated.getDescription());
         existing.setTransactionDate(updated.getTransactionDate());
 
+        transactionTagRepository.deleteByTransactionId(transactionId);
+
+        // Save updated transaction values
         Transaction saved = transactionRepository.save(existing);
 
-        // Clear old tags
-        transactionTagRepository.deleteByTransactionId(saved.getTransactionId());
-
-        // Re-add tags
+        // Handle tags
         if (tagNames != null && !tagNames.isEmpty()) {
-            List<Tag> tags = new ArrayList<>();
-            for (String name : tagNames) {
-                Tag tag = tagRepository.findByTagName(name)
-                        .orElseGet(() -> tagRepository.save(Tag.builder().tagName(name).build()));
-                tags.add(tag);
-            }
 
-            for (Tag tag : tags) {
-                TransactionTag txTag = TransactionTag.builder()
-                        .transactionId(saved.getTransactionId())
-                        .tagId(tag.getTagId())
-                        .build();
-                transactionTagRepository.save(txTag);
+            // Remove duplicates to avoid unique constraint error
+            tagNames = tagNames.stream().distinct().toList();
+
+            for (String name : tagNames) {
+
+                Tag tag = tagRepository.findByTagName(name)
+                        .orElseGet(() -> tagRepository.save(
+                                Tag.builder().tagName(name).build()
+                        ));
+
+                transactionTagRepository.save(
+                        TransactionTag.builder()
+                                .transactionId(transactionId) // correct use
+                                .tagId(tag.getTagId())
+                                .build()
+                );
             }
         }
 
@@ -105,12 +115,14 @@ public class TransactionService implements TransactionServiceInterface {
     }
 
     @Override
+    @Transactional
     public void deleteTransaction(Long transactionId) {
         Long currentUserId = SecurityUtil.getCurrentUserId();
         ownershipValidator.validateTransaction(transactionId, currentUserId);
         transactionTagRepository.deleteByTransactionId(transactionId);
         transactionRepository.deleteById(transactionId);
     }
+
 
     @Override
     public Transaction getTransactionById(Long transactionId) {
