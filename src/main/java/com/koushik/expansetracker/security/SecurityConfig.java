@@ -41,14 +41,11 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
 
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
                         .requestMatchers("/auth/login", "/auth/signup","/auth/forgot-password","/auth/reset-password").permitAll()
 
-                        // Admin-only security management endpoints
                         .requestMatchers("/roles/**", "/user-roles/**", "/screens/**")
-                        .hasRole("ADMIN") // matches ROLE_ADMIN in DB
+                        .hasRole("ADMIN")
 
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
 
